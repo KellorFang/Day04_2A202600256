@@ -71,29 +71,33 @@ def search_flights(origin: str, destination: str) -> str:
     Trả về danh sách chuyến bay với hãng, giờ bay, giá vé.
     Nếu không tìm thấy tuyến bay, trả về thông báo không có chuyến.
     """
-    # Tra cứu FLIGHTS_DB với key (origin, destination)
-    flights = FLIGHTS_DB.get((origin, destination))
+    try:
+        # Tra cứu FLIGHTS_DB với key (origin, destination)
+        flights = FLIGHTS_DB.get((origin, destination))
 
-    # Nếu không tìm thấy → thử tra ngược (destination, origin)
-    if flights is None:
-        flights = FLIGHTS_DB.get((destination, origin))
+        # Nếu không tìm thấy → thử tra ngược (destination, origin)
+        if flights is None:
+            flights = FLIGHTS_DB.get((destination, origin))
 
-    # Nếu cũng không có → báo không tìm thấy
-    if not flights:
-        return f"Không tìm thấy chuyến bay từ {origin} đến {destination}."
+        # Nếu cũng không có → báo không tìm thấy
+        if not flights:
+            return f"Không tìm thấy chuyến bay từ {origin} đến {destination}."
 
-    # Format danh sách chuyến bay dễ đọc, giá có dấu chấm phân cách (1.450.000đ)
-    lines = [f"✈️  Chuyến bay từ {origin} → {destination}:\n"]
-    for i, f in enumerate(flights, 1):
-        price_fmt = f"{f['price']:,}".replace(",", ".")
-        lines.append(
-            f"  {i}. {f['airline']} | "
-            f"Khởi hành: {f['departure']} - Đến: {f['arrival']} | "
-            f"Hạng: {f['class']} | "
-            f"Giá: {price_fmt}đ"
-        )
+        # Format danh sách chuyến bay dễ đọc, giá có dấu chấm phân cách (1.450.000đ)
+        lines = [f"✈️  Chuyến bay từ {origin} → {destination}:\n"]
+        for i, f in enumerate(flights, 1):
+            price_fmt = f"{f['price']:,}".replace(",", ".")
+            lines.append(
+                f"  {i}. {f['airline']} | "
+                f"Khởi hành: {f['departure']} - Đến: {f['arrival']} | "
+                f"Hạng: {f['class']} | "
+                f"Giá: {price_fmt}đ"
+            )
 
-    return "\n".join(lines)
+        return "\n".join(lines)
+
+    except Exception as e:
+        return f"Lỗi khi tìm chuyến bay từ {origin} đến {destination}: {e}"
 
 
 @tool
@@ -105,39 +109,43 @@ def search_hotels(city: str, max_price_per_night: int = 99999999) -> str:
     - max_price_per_night: giá tối đa mỗi đêm (VNĐ), mặc định không giới hạn
     Trả về danh sách khách sạn phù hợp với tên, số sao, giá, khu vực, rating.
     """
-    # Tra cứu HOTELS_DB[city]
-    hotels = HOTELS_DB.get(city)
+    try:
+        # Tra cứu HOTELS_DB[city]
+        hotels = HOTELS_DB.get(city)
 
-    if not hotels:
-        return f"Không tìm thấy khách sạn tại {city}."
+        if not hotels:
+            return f"Không tìm thấy khách sạn tại {city}."
 
-    # Lọc theo max_price_per_night
-    filtered = [h for h in hotels if h["price_per_night"] <= max_price_per_night]
+        # Lọc theo max_price_per_night
+        filtered = [h for h in hotels if h["price_per_night"] <= max_price_per_night]
 
-    # Nếu không có kết quả sau lọc
-    if not filtered:
-        price_fmt = f"{max_price_per_night:,}".replace(",", ".")
-        return (
-            f"Không tìm thấy khách sạn tại {city} "
-            f"với giá dưới {price_fmt}đ/đêm. Hãy thử tăng ngân sách."
-        )
+        # Nếu không có kết quả sau lọc
+        if not filtered:
+            price_fmt = f"{max_price_per_night:,}".replace(",", ".")
+            return (
+                f"Không tìm thấy khách sạn tại {city} "
+                f"với giá dưới {price_fmt}đ/đêm. Hãy thử tăng ngân sách."
+            )
 
-    # Sắp xếp theo rating giảm dần
-    filtered.sort(key=lambda h: h["rating"], reverse=True)
+        # Sắp xếp theo rating giảm dần
+        filtered.sort(key=lambda h: h["rating"], reverse=True)
 
-    # Format đẹp
-    lines = [f"🏨  Khách sạn tại {city}:\n"]
-    for i, h in enumerate(filtered, 1):
-        price_fmt = f"{h['price_per_night']:,}".replace(",", ".")
-        stars = "⭐" * h["stars"]
-        lines.append(
-            f"  {i}. {h['name']} {stars} | "
-            f"Khu vực: {h['area']} | "
-            f"Giá: {price_fmt}đ/đêm | "
-            f"Rating: {h['rating']}/5.0"
-        )
+        # Format đẹp
+        lines = [f"🏨  Khách sạn tại {city}:\n"]
+        for i, h in enumerate(filtered, 1):
+            price_fmt = f"{h['price_per_night']:,}".replace(",", ".")
+            stars = "⭐" * h["stars"]
+            lines.append(
+                f"  {i}. {h['name']} {stars} | "
+                f"Khu vực: {h['area']} | "
+                f"Giá: {price_fmt}đ/đêm | "
+                f"Rating: {h['rating']}/5.0"
+            )
 
-    return "\n".join(lines)
+        return "\n".join(lines)
+
+    except Exception as e:
+        return f"Lỗi khi tìm khách sạn tại {city}: {e}"
 
 
 @tool
